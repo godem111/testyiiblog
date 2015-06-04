@@ -114,6 +114,32 @@ class Comment extends CActiveRecord
         return parent::model($className);
     }
 
+
+    /**
+     * @return integer the number of comments that are pending approval
+     */
+    public function getPendingCommentCount()
+    {
+        return $this->count('status=' . self::STATUS_PENDING);
+    }
+
+    /**
+     * @param integer the maximum number of comments that should be returned
+     * @return array the most recently added comments
+     */
+    public function findRecentComments($limit = 10)
+    {
+        return $this->with('post')->findAll(array(
+            'condition' => 't.status=' . self::STATUS_APPROVED,
+            'order' => 't.create_time DESC',
+            'limit' => $limit,
+        ));
+    }
+
+    /**
+     * This is invoked before the record is saved.
+     * @return boolean whether the record should be saved.
+     */
     protected function beforeSave()
     {
         if (parent::beforeSave()) {
@@ -148,11 +174,4 @@ class Comment extends CActiveRecord
             return CHtml::encode($this->author);
     }
 
-    /**
-     * @return integer the number of comments that are pending approval
-     */
-    public function getPendingCommentCount()
-    {
-        return $this->count('status=' . self::STATUS_PENDING);
-    }
 }
